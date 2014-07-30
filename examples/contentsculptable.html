@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>contentsculptable</title>
+  <style>
+    [contenteditable] {
+      border: 1px solid #ddd;
+      min-height: 100px;
+      outline: none;
+      width: 500px;
+    }
+  </style>
+</head>
+<body>
+  <div></div>
+  <script src="../dist/contentsculptable-bundle.js"></script>
+  <script>
+    var el = document.querySelector('div');
+    var view = new contentsculptable.ViewModel(el);
+    var m = view.textModel;
+
+    m.on('change', function foo() {
+      var text = el.textContent = m.getValue();
+      var words = text.split(/\s+/);
+      var searchIndex = 0;
+      var count = 0;
+      while (words.length > 0) {
+        var word = words.shift();
+        if (count++ % 2 == 0) continue;
+
+        var i = text.indexOf(word, searchIndex);
+        console.log('wrapping ' + word);
+        view.wrapText(i, i + word.length, 'b');
+        searchIndex += word.length;
+      }
+      view.restoreSelection();
+    });
+  </script>
+</body>
+</html>

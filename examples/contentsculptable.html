@@ -28,7 +28,6 @@
   <script>
     var el = document.querySelector('div');
     var view = contentsculptable(el);
-    var model = view.textModel;
 
     function wrapMatch(tagName) {
       return function(match, forEditing) {
@@ -47,7 +46,7 @@
       /(\_)(?![\_,\s]).*(\_)/, wrapMatch('i')
     ];
 
-    model.on('change', function foo() {
+    view.on('render', function(model) {
       var text = el.textContent = model.getValue();
       for (var i = 0; i < patterns.length; ++i) {
         var p = patterns[i];
@@ -60,7 +59,6 @@
           fn(match, editing);
         }
       }
-      view.restoreSelection();
     });
   </script>
 </body>

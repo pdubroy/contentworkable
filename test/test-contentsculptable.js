@@ -254,9 +254,8 @@ QUnit.test('model affects view', function(t) {
   var view = contentsculptable(el);
   var m = view.textModel;
 
-  m.on('change', function() {
-    el.textContent = m.getValue();
-    m.restoreSelection(el);
+  view.on('render', function(model) {
+    el.textContent = model.getValue();
   });
   m.insert('yippee');
   t.equal(el.textContent, m.getValue());

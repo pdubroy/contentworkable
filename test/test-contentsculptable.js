@@ -1,3 +1,5 @@
+/* global document, QUnit, contentsculptable */
+
 var sculptable = contentsculptable;
 
 function createElement(tagName, props) {
@@ -89,7 +91,7 @@ QUnit.test('nodeForOffset', function(t) {
 QUnit.module('sculptable');
 
 QUnit.test('basic insertion', function(t) {
-  var m = new sculptable.TextModel;
+  var m = new sculptable.TextModel();
   t.equal(0, m.getCursor());
 
   m.insert('foo');
@@ -108,7 +110,7 @@ QUnit.test('basic insertion', function(t) {
 });
 
 QUnit.test('deletion', function(t) {
-  var m = new sculptable.TextModel;
+  var m = new sculptable.TextModel();
   m.insert('hello');
   m.setCursor(5);
   m.delete();
@@ -130,7 +132,7 @@ QUnit.test('deletion', function(t) {
 });
 
 QUnit.test('delection with selections', function(t) {
-  var m = new sculptable.TextModel;
+  var m = new sculptable.TextModel();
   m.insert('e');
 
   m.setSelection(0, 0);
@@ -150,14 +152,14 @@ QUnit.test('delection with selections', function(t) {
 });
 
 QUnit.test('insertion with selections', function(t) {
-  var m = new sculptable.TextModel;
+  var m = new sculptable.TextModel();
   m.insert('foo');
 
   m.setSelection(1, 3);
   m.insert('oob');
   t.equal(m.getValue(), 'foob');
 
-  m.insert('ar')
+  m.insert('ar');
   t.equal(m.getValue(), 'foobar');
 
   // Insertion with a selection should only trigger one change event.
@@ -169,10 +171,10 @@ QUnit.test('insertion with selections', function(t) {
 });
 
 QUnit.test('model changes', function(t) {
-  var m = new sculptable.TextModel;
+  var m = new sculptable.TextModel();
 
   var count = 0;
-  function incCount() { ++count; };
+  function incCount() { ++count; }
 
   m.on('change', incCount);
   m.insert('hi');
@@ -185,7 +187,7 @@ QUnit.test('model changes', function(t) {
   var count2 = 0;
   m.on('change', function() { ++count2; });
   m.insert('hi');
-  t.equal(count, 3)
+  t.equal(count, 3);
   t.equal(count2, 1);
 
   m.off('change', incCount);
@@ -225,7 +227,7 @@ QUnit.test('model affects view', function(t) {
     el.textContent = m.getValue();
     m.restoreSelection(el);
   });
-  m.insert('yippee')
+  m.insert('yippee');
   t.equal(el.textContent, m.getValue());
 
   m.deleteBackwards();

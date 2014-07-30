@@ -20,7 +20,7 @@
     "init-repo": "mkdir bin dist lib third_party; git remote rm origin",
     "build": "browserify -s contentsculptable -o dist/contentsculptable-bundle.js main.js",
     "watch": "watchify -s contentsculptable -o dist/contentsculptable-bundle.js main.js",
-    "test": "tape test/*.js",
+    "test": "open test/test-contentsculptable.html",
     "prepublish": "npm run build && npm run test && npm run lint",
     "lint": "jshint *.js lib/*.js test/*.js"
   }

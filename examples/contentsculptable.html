@@ -6,9 +6,19 @@
   <style>
     [contenteditable] {
       border: 1px solid #ddd;
+      color: #444;
+      font-size: 18px;
+      font-family: Georgia;
       min-height: 100px;
       outline: none;
       width: 500px;
+    }
+    .hidden {
+      display: none;
+      opacity: 0;
+    }
+    .subtle {
+      opacity: 0.3;
     }
   </style>
 </head>
@@ -18,21 +28,37 @@
   <script>
     var el = document.querySelector('div');
     var view = new contentsculptable.ViewModel(el);
-    var m = view.textModel;
+    var model = view.textModel;
 
-    m.on('change', function foo() {
-      var text = el.textContent = m.getValue();
-      var words = text.split(/\s+/);
-      var searchIndex = 0;
-      var count = 0;
-      while (words.length > 0) {
-        var word = words.shift();
-        if (count++ % 2 == 0) continue;
+    function wrapMatch(tagName) {
+      return function(match, forEditing) {
+        var i = match.index;
+        var el = view.wrapText(i, i + match[0].length, tagName);
+        var tag = forEditing ? 'span.subtle' : 'span.hidden';
+        view.wrapText(i, i + match[1].length, tag);
+        view.wrapText(i + match[0].length - match[1].length, i + match[0].length, tag);
+      };
+    }
 
-        var i = text.indexOf(word, searchIndex);
-        console.log('wrapping ' + word);
-        view.wrapText(i, i + word.length, 'b');
-        searchIndex += word.length;
+    var patterns = [
+      /(\*\*)(?!\s).*(\*\*)/, wrapMatch('b'),
+      /(\_\_)(?!\s).*(\_\_)/, wrapMatch('b'),
+      /(\*)(?![\*,\s]).*(\*)/, wrapMatch('i'),
+      /(\_)(?![\_,\s]).*(\_)/, wrapMatch('i')
+    ];
+
+    model.on('change', function foo() {
+      var text = el.textContent = model.getValue();
+      for (var i = 0; i < patterns.length; ++i) {
+        var p = patterns[i];
+        var fn = patterns[++i];
+        var match = text.match(p);
+        if (match) {
+          var end = match.index + match[0].length;
+          var c = model.getCursor();
+          var editing = match.index <= c && c <= end;
+          fn(match, editing);
+        }
       }
       view.restoreSelection();
     });

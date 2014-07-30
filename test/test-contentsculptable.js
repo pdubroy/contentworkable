@@ -1,7 +1,5 @@
 /* global document, QUnit, contentsculptable */
 
-var sculptable = contentsculptable;
-
 function createElement(tagName, props) {
   var el = document.createElement(tagName);
   for (var k in props) {
@@ -37,7 +35,7 @@ function simulate(el, str) {
   }
 }
 
-var setSelection = sculptable.dom.setSelection;
+var setSelection = contentsculptable.dom.setSelection;
 
 function setCursor(el, offset, callback) {
   setSelection(el, offset, offset);
@@ -65,7 +63,7 @@ var withTestDiv = {
 QUnit.module('domUtils', withTestDiv);
 QUnit.test('nodeForOffset', function(t) {
   function nodeForOffset(startNode, offset) {
-    var result = sculptable.dom.findNestedOffset(startNode, offset);
+    var result = contentsculptable.dom.findNestedOffset(startNode, offset);
     return result ? result.node : null;
   }
 
@@ -89,7 +87,7 @@ QUnit.test('nodeForOffset', function(t) {
 });
 
 QUnit.test('splitTextNode', function(t) {
-  var splitTextNode = sculptable.dom.splitTextNode;
+  var splitTextNode = contentsculptable.dom.splitTextNode;
   var el = $('#testEl');
   el.textContent = 'foobar';
 
@@ -109,7 +107,7 @@ QUnit.test('splitTextNode', function(t) {
 });
 
 QUnit.test('wrapNode', function(t) {
-  var wrapNode = sculptable.dom.wrapNode;
+  var wrapNode = contentsculptable.dom.wrapNode;
   var el = $('#testEl');
   el.textContent = 'x';
 
@@ -121,10 +119,10 @@ QUnit.test('wrapNode', function(t) {
   t.equal(el.innerHTML, '<i><b>x</b></i>hey');
 });
 
-QUnit.module('sculptable');
+QUnit.module('contentsculptable');
 
 QUnit.test('basic insertion', function(t) {
-  var m = new sculptable.TextModel();
+  var m = new contentsculptable.TextModel();
   t.equal(0, m.getCursor());
 
   m.insert('foo');
@@ -143,7 +141,7 @@ QUnit.test('basic insertion', function(t) {
 });
 
 QUnit.test('deletion', function(t) {
-  var m = new sculptable.TextModel();
+  var m = new contentsculptable.TextModel();
   m.insert('hello');
   m.setCursor(5);
   m.delete();
@@ -165,7 +163,7 @@ QUnit.test('deletion', function(t) {
 });
 
 QUnit.test('delection with selections', function(t) {
-  var m = new sculptable.TextModel();
+  var m = new contentsculptable.TextModel();
   m.insert('e');
 
   m.setSelection(0, 0);
@@ -185,7 +183,7 @@ QUnit.test('delection with selections', function(t) {
 });
 
 QUnit.test('insertion with selections', function(t) {
-  var m = new sculptable.TextModel();
+  var m = new contentsculptable.TextModel();
   m.insert('foo');
 
   m.setSelection(1, 3);
@@ -204,7 +202,7 @@ QUnit.test('insertion with selections', function(t) {
 });
 
 QUnit.test('model changes', function(t) {
-  var m = new sculptable.TextModel();
+  var m = new contentsculptable.TextModel();
 
   var count = 0;
   function incCount() { ++count; }
@@ -232,7 +230,7 @@ QUnit.test('model changes', function(t) {
 QUnit.module("DOM Tests", withTestDiv);
 QUnit.asyncTest('view affects model', function(t) {
   var el = $('#testEl');
-  var view = new sculptable.ViewModel(el);
+  var view = contentsculptable(el);
   var m = view.textModel;
 
   simulate(el, 'hiya');
@@ -253,7 +251,7 @@ QUnit.asyncTest('view affects model', function(t) {
 
 QUnit.test('model affects view', function(t) {
   var el = $('#testEl');
-  var view = new sculptable.ViewModel(el);
+  var view = contentsculptable(el);
   var m = view.textModel;
 
   m.on('change', function() {

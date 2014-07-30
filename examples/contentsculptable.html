@@ -27,7 +27,7 @@
   <script src="../dist/contentsculptable-bundle.js"></script>
   <script>
     var el = document.querySelector('div');
-    var view = new contentsculptable.ViewModel(el);
+    var view = contentsculptable(el);
     var model = view.textModel;
 
     function wrapMatch(tagName) {

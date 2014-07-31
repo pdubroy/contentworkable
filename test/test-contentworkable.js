@@ -87,39 +87,6 @@ QUnit.test('findNestedOffset', function(t) {
   t.ok(true);
 });
 
-QUnit.test('splitTextNode', function(t) {
-  var splitTextNode = contentworkable.dom.splitTextNode;
-  var el = $('#testEl');
-  el.textContent = 'foobar';
-
-  var n = splitTextNode(el.firstChild, 0);
-  t.equal(el.childNodes[1], n);
-  t.equal(el.firstChild.data, '');
-
-  n = splitTextNode(el.childNodes[1], 6);
-  t.equal(el.childNodes[2], n);
-  t.equal(el.childNodes[0].data, '');
-  t.equal(el.childNodes[2].data, '');
-
-  n = splitTextNode(el.childNodes[1], 4);
-  t.equal(el.childNodes[2], n);
-  t.equal(el.childNodes[1].textContent, 'foob');
-  t.equal(el.childNodes[2].textContent, 'ar');
-});
-
-QUnit.test('wrapNode', function(t) {
-  var wrapNode = contentworkable.dom.wrapNode;
-  var el = $('#testEl');
-  el.textContent = 'x';
-
-  wrapNode(el.firstChild, document.createElement('b'));
-  t.equal(el.innerHTML, '<b>x</b>');
-
-  el.appendChild(document.createTextNode('hey'));
-  wrapNode(el.firstChild, document.createElement('i'));
-  t.equal(el.innerHTML, '<i><b>x</b></i>hey');
-});
-
 QUnit.module('contentworkable');
 
 QUnit.test('basic insertion', function(t) {

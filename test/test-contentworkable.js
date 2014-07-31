@@ -61,27 +61,28 @@ var withTestDiv = {
 };
 
 QUnit.module('domUtils', withTestDiv);
-QUnit.test('nodeForOffset', function(t) {
-  function nodeForOffset(startNode, offset) {
-    var result = contentworkable.dom.findNestedOffset(startNode, offset);
-    return result ? result.node : null;
+QUnit.test('findNestedOffset', function(t) {
+  function findNestedOffset(startNode, offset) {
+    return contentworkable.dom.findNestedOffset(startNode, offset);
   }
 
   var el = $('#testEl');
-  t.equal(nodeForOffset(el, 0), el);
+  t.equal(findNestedOffset(el, 0).node, el);
 
   el.textContent = 'foo';
-  t.equal(nodeForOffset(el, 1), el.firstChild);
-  t.equal(nodeForOffset(el, 3), el.firstChild);
+  t.deepEqual(findNestedOffset(el, 0), { node: el.firstChild, offset: 0 });
+  t.deepEqual(findNestedOffset(el, 3), { node: el.firstChild, offset: 3 });
+  t.deepEqual(findNestedOffset(el, 1), { node: el.firstChild, offset: 1 });
 
   el.innerHTML = 'a<b>cc</b>dd';
-  t.equal(nodeForOffset(el, 0), el.firstChild);
-  t.equal(nodeForOffset(el, 5), el.lastChild);
-  t.equal(nodeForOffset(el, 2), el.childNodes[1].firstChild);
+  t.deepEqual(findNestedOffset(el, 0), { node: el.firstChild, offset: 0 });
+
+  t.deepEqual(findNestedOffset(el, 5), { node: el.lastChild, offset: 2 });
+  t.deepEqual(findNestedOffset(el, 2), { node: el.childNodes[1].firstChild, offset: 1 });
 
   el.innerHTML = 'a<b>c</b>';
-  t.equal(nodeForOffset(el, 1), el.firstChild);
-  t.equal(nodeForOffset(el, 2), el.childNodes[1].firstChild);
+  t.deepEqual(findNestedOffset(el, 1), { node: el.firstChild, offset: 1 });
+  t.deepEqual(findNestedOffset(el, 2), { node: el.childNodes[1].firstChild, offset: 1 });
 
   t.ok(true);
 });

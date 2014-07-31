@@ -3,62 +3,143 @@
 <head>
   <meta charset="utf-8">
   <title>contentworkable</title>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
   <style>
+    body {
+      margin: 8px 16px;
+    }
     [contenteditable] {
       border: 1px solid #ddd;
+      box-sizing: border-box;
       color: #444;
       font-size: 18px;
       font-family: Georgia;
       min-height: 100px;
       outline: none;
-      width: 500px;
+      padding: 8px;
+      width: 100%;
+      max-width: 600px;
     }
     .hidden {
       display: none;
       opacity: 0;
     }
-    .subtle {
-      opacity: 0.3;
+    .duration-0 .control { transition-duration: 0; }
+    .duration-25 .control { transition-duration: 25ms; }
+    .duration-50 .control { transition-duration: 50ms; }
+    .duration-75 .control { transition-duration: 75ms; }
+    .duration-100 .control { transition-duration: 100ms; }
+    .duration-125 .control { transition-duration: 125ms; }
+    .duration-150 .control { transition-duration: 150ms; }
+    .duration-175 .control { transition-duration: 175ms; }
+    .duration-200 .control { transition-duration: 200ms; }
+    .duration-225 .control { transition-duration: 225ms; }
+    .duration-250 .control { transition-duration: 250ms; }
+    .duration-275 .control { transition-duration: 275ms; }
+    .duration-300 .control { transition-duration: 300ms; }
+    .control {
+      transition-property: letter-spacing, opacity;
+      transition-timing-function: ease-in-out;
+      opacity: 0.5;
+    }
+    .widget.no-transition > .control {
+      transition-duration: 0 !important;
     }
   </style>
 </head>
-<body>
-  <div></div>
+<body class="duration-75">
+  <h3>Cursor distance<br>
+  <small>Progressively reveals hidden characters as the cursor gets closer.</small></h3>
+  <div id="box-1"></div>
+  <br>
+  <p>Proximity threshold: <input type="number" id="proximity" min="1" max="99" value="4"></input></p>
+  <p>Animation duration: <input type="number" id="anim" min="0" max="300" value="75" step="25"></input> ms</p>
   <script src="../dist/contentworkable-bundle.js"></script>
+
   <script>
-    var el = document.querySelector('div');
-    var view = contentworkable(el);
+    function $(sel) { return document.querySelector(sel); }
+    function $$(sel) { return document.querySelectorAll(sel); }
+
+    // Hacky parameter tweaking stuff here.
+    var proximityControl = $('#proximity');
+    $('#anim').addEventListener('input', function(e) {
+      $('#box-1').className = 'duration-' + this.value;
+    });
+    // End hacky parameter tweaking.
+
+    var view = contentworkable($('div'));
 
     function wrapMatch(tagName) {
-      return function(match, forEditing) {
+      return function(match, offset) {
         var i = match.index;
-        var el = view.wrapText(i, i + match[0].length, tagName);
-        var tag = forEditing ? 'span.subtle' : 'span.hidden';
-        view.wrapText(i, i + match[1].length, tag);
-        view.wrapText(i + match[0].length - match[1].length, i + match[0].length, tag);
+        var el = view.wrapText(view.el, i + offset, i + offset + match[0].length, tagName);
+        el.classList.add('widget');
+        view.wrapText(el, 0, match[1].length, 'span.control');
+        view.wrapText(el, match[0].length - match[1].length, match[0].length, 'span.control');
       };
     }
 
     var patterns = [
-      /(\*\*)(?!\s).*(\*\*)/, wrapMatch('b'),
-      /(\_\_)(?!\s).*(\_\_)/, wrapMatch('b'),
-      /(\*)(?![\*,\s]).*(\*)/, wrapMatch('i'),
-      /(\_)(?![\_,\s]).*(\_)/, wrapMatch('i')
+      /(\*\*)(?!\s).+?(\*\*)/, wrapMatch('b'),
+      /(\_\_)(?!\s).+?(\_\_)/, wrapMatch('b'),
+      /(\*)(?![\*,\s]).+?(\*)/, wrapMatch('i'),
+      /(\_)(?![\_,\s]).+?(\_)/, wrapMatch('i')
     ];
 
-    view.on('render', function(model) {
-      var text = el.textContent = model.getValue();
+    function adjustControlChars(disableTransitions) {
+      var threshold = proximityControl.value;
+
+      var widgets = $$('.widget');
+      for (var j = 0; j < widgets.length; ++j) {
+        var w = widgets[j];
+        w.classList.toggle('no-transition', !!disableTransitions);
+        var pct = Math.min(threshold, cursorDist(w)) / threshold;
+        var controls = w.querySelectorAll('.control');
+        for (var i = 0; i < controls.length; ++i) {
+          var c = controls[i];
+          if (i == 0)
+            c.style.letterSpacing = Math.max(-8, pct * -8) + 'px';
+          else {
+            c.style.marginLeft = Math.max(-4, pct * -4) + 'px';
+            c.style.letterSpacing = Math.max(-4, pct * -4) + 'px';
+          }
+          c.style.opacity = 0.5 - 0.5 * pct;
+        }
+      }
+    }
+
+    function render(model) {
+      var text = view.el.textContent = model.getValue();
       for (var i = 0; i < patterns.length; ++i) {
         var p = patterns[i];
         var fn = patterns[++i];
-        var match = text.match(p);
-        if (match) {
-          var end = match.index + match[0].length;
-          var c = model.getCursor();
-          var editing = match.index <= c && c <= end;
-          fn(match, editing);
+        var match;
+        var offset = 0;
+        while (match = text.slice(offset).match(p)) {
+          fn(match, offset);
+          offset += match.index + match[0].length;
         }
       }
+      view.restoreSelection();
+      adjustControlChars(true);
+    }
+
+    // Find the distance between the given element and the cursor.
+    function cursorDist(node) {
+      var cursor = view.textModel.getCursor();
+      var startOffset = view.getAbsoluteOffset(node, 0);
+      var endOffset = view.getAbsoluteOffset(node, -1);
+      if (startOffset <= cursor && cursor <= endOffset)
+        return 0;
+      else if (cursor < startOffset)
+        return startOffset - cursor;
+      else
+        return cursor - endOffset;
+    }
+
+    view.on('render', render);
+    view.on('selectionchange', function() {
+      adjustControlChars();
     });
   </script>
 </body>

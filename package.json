@@ -1,5 +1,5 @@
 {
-  "name": "contentsculptable",
+  "name": "contentworkable",
   "version": "0.1.0",
   "description": "A foundation for sane contenteditable-based editors.",
   "author": {
@@ -18,9 +18,9 @@
   },
   "scripts": {
     "init-repo": "mkdir bin dist lib third_party; git remote rm origin",
-    "build": "browserify -s contentsculptable -o dist/contentsculptable-bundle.js main.js",
-    "watch": "watchify -s contentsculptable -o dist/contentsculptable-bundle.js main.js",
-    "test": "open test/test-contentsculptable.html",
+    "build": "browserify -s contentworkable -o dist/contentworkable-bundle.js main.js",
+    "watch": "watchify -s contentworkable -o dist/contentworkable-bundle.js main.js",
+    "test": "open test/test-contentworkable.html",
     "prepublish": "npm run build && npm run test && npm run lint",
     "lint": "jshint *.js lib/*.js test/*.js"
   }

@@ -1,4 +1,4 @@
-/* global document, QUnit, contentsculptable */
+/* global document, QUnit, contentworkable */
 
 function createElement(tagName, props) {
   var el = document.createElement(tagName);
@@ -35,7 +35,7 @@ function simulate(el, str) {
   }
 }
 
-var setSelection = contentsculptable.dom.setSelection;
+var setSelection = contentworkable.dom.setSelection;
 
 function setCursor(el, offset, callback) {
   setSelection(el, offset, offset);
@@ -63,7 +63,7 @@ var withTestDiv = {
 QUnit.module('domUtils', withTestDiv);
 QUnit.test('nodeForOffset', function(t) {
   function nodeForOffset(startNode, offset) {
-    var result = contentsculptable.dom.findNestedOffset(startNode, offset);
+    var result = contentworkable.dom.findNestedOffset(startNode, offset);
     return result ? result.node : null;
   }
 
@@ -87,7 +87,7 @@ QUnit.test('nodeForOffset', function(t) {
 });
 
 QUnit.test('splitTextNode', function(t) {
-  var splitTextNode = contentsculptable.dom.splitTextNode;
+  var splitTextNode = contentworkable.dom.splitTextNode;
   var el = $('#testEl');
   el.textContent = 'foobar';
 
@@ -107,7 +107,7 @@ QUnit.test('splitTextNode', function(t) {
 });
 
 QUnit.test('wrapNode', function(t) {
-  var wrapNode = contentsculptable.dom.wrapNode;
+  var wrapNode = contentworkable.dom.wrapNode;
   var el = $('#testEl');
   el.textContent = 'x';
 
@@ -119,10 +119,10 @@ QUnit.test('wrapNode', function(t) {
   t.equal(el.innerHTML, '<i><b>x</b></i>hey');
 });
 
-QUnit.module('contentsculptable');
+QUnit.module('contentworkable');
 
 QUnit.test('basic insertion', function(t) {
-  var m = new contentsculptable.TextModel();
+  var m = new contentworkable.TextModel();
   t.equal(0, m.getCursor());
 
   m.insert('foo');
@@ -141,7 +141,7 @@ QUnit.test('basic insertion', function(t) {
 });
 
 QUnit.test('deletion', function(t) {
-  var m = new contentsculptable.TextModel();
+  var m = new contentworkable.TextModel();
   m.insert('hello');
   m.setCursor(5);
   m.delete();
@@ -163,7 +163,7 @@ QUnit.test('deletion', function(t) {
 });
 
 QUnit.test('delection with selections', function(t) {
-  var m = new contentsculptable.TextModel();
+  var m = new contentworkable.TextModel();
   m.insert('e');
 
   m.setSelection(0, 0);
@@ -183,7 +183,7 @@ QUnit.test('delection with selections', function(t) {
 });
 
 QUnit.test('insertion with selections', function(t) {
-  var m = new contentsculptable.TextModel();
+  var m = new contentworkable.TextModel();
   m.insert('foo');
 
   m.setSelection(1, 3);
@@ -202,7 +202,7 @@ QUnit.test('insertion with selections', function(t) {
 });
 
 QUnit.test('model changes', function(t) {
-  var m = new contentsculptable.TextModel();
+  var m = new contentworkable.TextModel();
 
   var count = 0;
   function incCount() { ++count; }
@@ -239,7 +239,7 @@ QUnit.test('model changes', function(t) {
 QUnit.module("DOM Tests", withTestDiv);
 QUnit.asyncTest('view affects model', function(t) {
   var el = $('#testEl');
-  var view = contentsculptable(el);
+  var view = contentworkable(el);
   var m = view.textModel;
 
   simulate(el, 'hiya');
@@ -260,7 +260,7 @@ QUnit.asyncTest('view affects model', function(t) {
 
 QUnit.test('model affects view', function(t) {
   var el = $('#testEl');
-  var view = contentsculptable(el);
+  var view = contentworkable(el);
   var m = view.textModel;
 
   view.on('render', function(model) {

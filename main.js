@@ -1,1 +1,1 @@
-module.exports = require('./lib/contentsculptable');
+module.exports = require('./lib/contentworkable');

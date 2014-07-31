@@ -225,6 +225,15 @@ QUnit.test('model changes', function(t) {
   m.insert('hi');
   t.equal(count, 3);
   t.equal(count2, 2);
+
+  // Events can not be emitted from their own handler.
+  var count3 = 0;
+  m.on('change', function() {
+    ++count3;
+    m.insert('x');
+  });
+  m.insert('z');
+  t.equal(count3, 1);
 });
 
 QUnit.module("DOM Tests", withTestDiv);

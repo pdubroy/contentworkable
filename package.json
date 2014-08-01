@@ -14,14 +14,26 @@
     "browserify": "^5.9.1",
     "jshint": "^2.5.2",
     "tape": "^2.13.4",
+    "testling": "^1.7.0",
     "watchify": "^1.0.1"
   },
   "scripts": {
     "init-repo": "mkdir bin dist lib third_party; git remote rm origin",
     "build": "browserify -s contentworkable -o dist/contentworkable-bundle.js main.js",
     "watch": "watchify -s contentworkable -o dist/contentworkable-bundle.js main.js",
-    "test": "open test/test-contentworkable.html",
+    "test": "browserify -d test/test-contentworkable.js | testling",
     "prepublish": "npm run build && npm run test && npm run lint",
     "lint": "jshint *.js lib/*.js test/*.js"
+  },
+  "testling": {
+    "files": "test/*.js",
+    "browsers": [
+      "chrome/35..latest",
+      "firefox/29..latest",
+      "safari/latest",
+      "iphone/6",
+      "ipad/6",
+      "android-browser/latest"
+    ]
   }
 }

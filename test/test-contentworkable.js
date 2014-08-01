@@ -1,13 +1,11 @@
-/* global document, QUnit, contentworkable */
+/* global document */
 
-function createElement(tagName, props) {
-  var el = document.createElement(tagName);
-  for (var k in props) {
-    if (props.hasOwnProperty(k))
-      el[k] = props[k];
-  }
-  return el;
-}
+var test = require('tape');
+var contentworkable = require('../lib/contentworkable');
+
+// --------------------------------------------------------------------
+// Test Helpers
+// --------------------------------------------------------------------
 
 function $(sel) {
   return document.querySelector(sel);
@@ -22,8 +20,11 @@ function simulateKeyEvent(el, keyCode, type) {
     return this.keyCodeVal;
   }
 
-  Object.defineProperty(e, 'keyCode', { get: getKeyCode });
-  Object.defineProperty(e, 'which', { get: getKeyCode });
+  try {
+    Object.defineProperty(e, 'keyCode', { get: getKeyCode });
+    Object.defineProperty(e, 'which', { get: getKeyCode });
+  } catch(e) {}
+
   e.initKeyboardEvent(type, true, true, document.defaultView, false, false, false, false, keyCode, keyCode);
   el.dispatchEvent(e);
 }
@@ -35,24 +36,27 @@ function simulate(el, str) {
   }
 }
 
-var setSelection = contentworkable.dom.setSelection;
-
-function setCursor(el, offset, callback) {
-  setSelection(el, offset, offset);
-
-  // Cursor changes affect the model asynchronously. If a callback is passed,
-  // invoke it after a timeout.
-  if (callback) {
-    setTimeout(function() {
-      QUnit.start();
-      callback();
-    }, 1);
-  }
+function setSelection() {
+  if (!contentworkable.dom.setSelection.apply(null, arguments))
+    throw new Error('setSelection failed');
 }
 
-var withTestDiv = {
+function setCursor(el, offset, callback) {
+  // Cursor changes affect the model asynchronously. If a callback is passed,
+  // invoke it after selectionchange is observed.
+  if (callback) {
+    document.addEventListener('selectionchange', function onchange() {
+      callback();
+      document.removeEventListener('selectionchange', onchange);
+    });
+  }
+
+  setSelection(el, offset, offset);
+}
+
+var withTestEl = {
   setup: function() {
-    var el = $('body').appendChild(createElement('div'));
+    var el = $('body').appendChild(document.createElement('div'));
     el.id = 'testEl';
   },
   teardown: function() {
@@ -60,12 +64,20 @@ var withTestDiv = {
   }
 };
 
-QUnit.module('domUtils', withTestDiv);
-QUnit.test('findNestedOffset', function(t) {
-  function findNestedOffset(startNode, offset) {
-    return contentworkable.dom.findNestedOffset(startNode, offset);
-  }
+function testWithFixture(desc, fixture, testFn) {
+  if (fixture.setup)
+    test('setup: ' + desc, function(t) { fixture.setup(t); t.end(); });
+  test(desc, testFn);
+  if (fixture.teardown)
+    test('teardown: ' + desc, function(t) { fixture.teardown(t); t.end(); });
+}
 
+// --------------------------------------------------------------------
+// Tests
+// --------------------------------------------------------------------
+
+testWithFixture('findNestedOffset', withTestEl, function(t) {
+  var findNestedOffset = contentworkable.dom.findNestedOffset;
   var el = $('#testEl');
   t.equal(findNestedOffset(el, 0).node, el);
 
@@ -84,12 +96,10 @@ QUnit.test('findNestedOffset', function(t) {
   t.deepEqual(findNestedOffset(el, 1), { node: el.firstChild, offset: 1 });
   t.deepEqual(findNestedOffset(el, 2), { node: el.childNodes[1].firstChild, offset: 1 });
 
-  t.ok(true);
+  t.end();
 });
 
-QUnit.module('contentworkable');
-
-QUnit.test('basic insertion', function(t) {
+test('basic insertion', function(t) {
   var m = new contentworkable.TextModel();
   t.equal(0, m.getCursor());
 
@@ -106,9 +116,11 @@ QUnit.test('basic insertion', function(t) {
   m.insert('d');
   t.equal('flood', m.getValue());
   t.equal(5, m.getCursor());
+
+  t.end();
 });
 
-QUnit.test('deletion', function(t) {
+test('deletion', function(t) {
   var m = new contentworkable.TextModel();
   m.insert('hello');
   m.setCursor(5);
@@ -128,9 +140,11 @@ QUnit.test('deletion', function(t) {
   m.setCursor(1);
   m.delete();
   t.equal(m.getValue(), 'el');
+
+  t.end();
 });
 
-QUnit.test('delection with selections', function(t) {
+test('delection with selections', function(t) {
   var m = new contentworkable.TextModel();
   m.insert('e');
 
@@ -148,9 +162,11 @@ QUnit.test('delection with selections', function(t) {
   m.setSelection(1, 4);
   m.deleteBackwards();
   t.equal(m.getValue(), 'we');
+
+  t.end();
 });
 
-QUnit.test('insertion with selections', function(t) {
+test('insertion with selections', function(t) {
   var m = new contentworkable.TextModel();
   m.insert('foo');
 
@@ -167,9 +183,11 @@ QUnit.test('insertion with selections', function(t) {
   m.setSelection(0, 6);
   m.insert('blah');
   t.equal(count, 1);
+
+  t.end();
 });
 
-QUnit.test('model changes', function(t) {
+test('model changes', function(t) {
   var m = new contentworkable.TextModel();
 
   var count = 0;
@@ -202,10 +220,11 @@ QUnit.test('model changes', function(t) {
   });
   m.insert('z');
   t.equal(count3, 1);
+
+  t.end();
 });
 
-QUnit.module("DOM Tests", withTestDiv);
-QUnit.asyncTest('view affects model', function(t) {
+testWithFixture('view affects model', withTestEl, function(t) {
   var el = $('#testEl');
   var view = contentworkable(el);
   var m = view.textModel;
@@ -223,10 +242,12 @@ QUnit.asyncTest('view affects model', function(t) {
 
     simulateKeyEvent(el, 13, 'keydown');
     t.equal(m.getValue(), 'blah\nhiya');
+
+    t.end();
   });
 });
 
-QUnit.test('model affects view', function(t) {
+testWithFixture('model affects view', withTestEl, function(t) {
   var el = $('#testEl');
   var view = contentworkable(el);
   var m = view.textModel;
@@ -239,4 +260,6 @@ QUnit.test('model affects view', function(t) {
 
   m.deleteBackwards();
   t.equal(el.textContent, m.getValue());
+
+  t.end();
 });

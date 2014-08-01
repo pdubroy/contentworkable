@@ -54,6 +54,7 @@
   <br>
   <p>Proximity threshold: <input type="number" id="proximity" min="1" max="99" value="4"></input></p>
   <p>Animation duration: <input type="number" id="anim" min="0" max="300" value="75" step="25"></input> ms</p>
+  <p><input id="incremental" type="checkbox" checked> Reveal characters incrementally</input>
   <script src="../dist/contentworkable-bundle.js"></script>
 
   <script>
@@ -62,8 +63,12 @@
 
     // Hacky parameter tweaking stuff here.
     var proximityControl = $('#proximity');
+    var revealIncrementally = $('#incremental').checked;
     $('#anim').addEventListener('input', function(e) {
       $('#box-1').className = 'duration-' + this.value;
+    });
+    $('#incremental').addEventListener('click', function(e) {
+      revealIncrementally = $('#incremental').checked;
     });
     // End hacky parameter tweaking.
 
@@ -93,16 +98,15 @@
       for (var j = 0; j < widgets.length; ++j) {
         var w = widgets[j];
         w.classList.toggle('no-transition', !!disableTransitions);
-        var pct = Math.min(threshold, cursorDist(w)) / threshold;
+        var dist = cursorDist(w);
+        if (!revealIncrementally && dist < threshold)
+          dist = 0;
+        var pct = Math.min(threshold, dist) / threshold;
         var controls = w.querySelectorAll('.control');
         for (var i = 0; i < controls.length; ++i) {
           var c = controls[i];
-          if (i == 0)
-            c.style.letterSpacing = Math.max(-8, pct * -8) + 'px';
-          else {
-            c.style.marginLeft = Math.max(-4, pct * -4) + 'px';
-            c.style.letterSpacing = Math.max(-4, pct * -4) + 'px';
-          }
+          c.style.marginLeft = Math.max(-4, pct * -4) + 'px';
+          c.style.letterSpacing = Math.max(-4, pct * -4) + 'px';
           c.style.opacity = 0.5 - 0.5 * pct;
         }
       }

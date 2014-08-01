@@ -2,11 +2,7 @@
   "name": "contentworkable",
   "version": "0.1.0",
   "description": "A foundation for sane contenteditable-based editors.",
-  "author": {
-    "name": "Patrick Dubroy",
-    "email": "pdubroy@gmail.com",
-    "url": "http://dubroy.com"
-  },
+  "author": "Patrick Dubroy <pdubroy@gmail.com> (http://dubroy.com)",
   "license": "MIT",
   "main": "main.js",
   "dependencies": {},
@@ -35,5 +31,20 @@
       "ipad/6",
       "android-browser/latest"
     ]
-  }
+  },
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pdubroy/contentworkable"
+  },
+  "keywords": [
+    "contenteditable"
+  ],
+  "bugs": {
+    "url": "https://github.com/pdubroy/contentworkable/issues"
+  },
+  "homepage": "https://github.com/pdubroy/contentworkable"
 }

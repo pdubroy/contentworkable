@@ -8,7 +8,7 @@ It works by intercepting edit and selection events in the DOM and translating th
 
 ## Development
 
-Use `npm test` to run the tests. Tests are run locally using [testling](https://www.npmjs.org/package/testling).
+Use `npm test` to run the tests. Tests are run locally using [testling](https://www.npmjs.org/package/testling). For headless testing, you can install PhantomJS (`npm install -g phantomjs`). **See [here](https://github.com/substack/testling/issues/70) if you still get the 'No headless browser found' error after installing PhantomJS.**
 
 [![browser support](https://ci.testling.com/pdubroy/contentworkable.png)
 ](https://ci.testling.com/pdubroy/contentworkable)

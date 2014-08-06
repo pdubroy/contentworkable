@@ -14,7 +14,7 @@
       color: #444;
       font-size: 18px;
       font-family: Georgia;
-      min-height: 100px;
+      min-height: 300px;
       outline: none;
       padding: 8px;
       width: 100%;
@@ -41,9 +41,38 @@
       transition-property: margin-left, margin-right, opacity, transform;
       transition-timing-function: ease-in-out;
       opacity: 0.5;
+      margin-left: 0;
     }
-    .widget.no-transition > .control {
+    .control.no-shrink {
+    }
+    .widget.no-transition > .control:not(.no-shrink) {
       transition-duration: 0 !important;
+    }
+    .widget.no-transition > .control.no-shrink {
+      transition-property: margin-left;
+    }
+    .control.no-shrink.hidden {
+      display: none;
+    }
+    .control.hidden + .expand-button {
+      background-color: #ccc;
+      border-radius: 0.6em;
+      color: white;
+      cursor: pointer;
+      font-size: 47%;
+      margin-left: 0.4em;
+      margin-right: 0.4em;
+      padding-left: 0.4em;
+      padding-right: 0.4em;
+      position: relative;
+      top: -1px;
+    }
+    .control.hidden + .expand-button:hover {
+      background-color: #aaa;
+      cursor: pointer;
+    }
+    .control.hidden + .expand-button::before {
+      content: '\22ef';
     }
   </style>
 </head>
@@ -56,6 +85,7 @@
   <p>Animation duration: <input type="number" id="anim" min="0" max="300" value="75" step="25"></input> ms</p>
   <p><input id="incremental" type="checkbox" checked> Reveal characters incrementally</input>
   <script src="../dist/contentworkable-bundle.js"></script>
+  <script src="../node_modules/marked-ast/dist/marked-ast-bundle.js"></script>
 
   <script>
     function $(sel) { return document.querySelector(sel); }
@@ -87,9 +117,17 @@
       var a = view.wrapText(el, linkStart, linkStart + match[1].length, 'a');
       a.href = match[2];
 
-      view.wrapText(el, 0, linkStart, 'span.control');
-      view.wrapText(el.lastChild, 0, 1, 'span.control');
-      view.wrapText(el.lastChild, 0, el.lastChild.textContent.length, 'span.control');
+      view.wrapText(el, 0, linkStart, 'span.control.no-shrink');
+      view.wrapText(el.lastChild, 0, 1, 'span.control.no-shrink');
+      view.wrapText(el.lastChild, 0, el.lastChild.textContent.length, 'span.control.no-shrink');
+      var button = el.appendChild(document.createElement('span'));
+      button.classList.add('expand-button');
+      button.addEventListener('click', function(e) {
+        var children = e.target.parentNode.querySelectorAll('.hidden');
+        for (var i = 0; i < children.length; ++i) {
+          children[i].classList.remove('hidden');
+        }
+      });
     }
 
     var patterns = [
@@ -112,9 +150,22 @@
         var controls = w.querySelectorAll('.control');
         for (var i = 0; i < controls.length; ++i) {
           var c = controls[i];
-          var halfWidth = c.offsetWidth / 2;
-          c.style.marginLeft = Math.max(-halfWidth, pct * -halfWidth) + 'px';
-          c.style.marginRight = Math.max(-halfWidth, pct * -halfWidth) + 'px';
+          if (c.classList.contains('no-shrink')) {
+            if (dist == threshold) {
+              c.style.marginLeft = pct == 1 ? -c.offsetWidth + 'px' : 0;
+              c.addEventListener('webkitTransitionEnd', function hide() {
+                c.style.marginLeft = 'initial';
+                c.classList.add('hidden');
+                c.removeEventListener('webkitTransitionEnd');
+              });
+            } else if (dist > threshold) {
+              c.classList.add('hidden');
+            }
+          } else {
+            var halfWidth = c.offsetWidth / 2;
+            c.style.marginLeft = Math.max(-halfWidth, pct * -halfWidth) + 'px';
+            c.style.marginRight = Math.max(-halfWidth, pct * -halfWidth) + 'px';
+          }
           c.style.opacity = 0.5 - 0.5 * pct;
         }
       }

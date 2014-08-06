@@ -20,6 +20,14 @@
       width: 100%;
       max-width: 600px;
     }
+    [contenteditable] h1,
+    [contenteditable] h2,
+    [contenteditable] h3,
+    [contenteditable] h4,
+    [contenteditable] h5,
+    [contenteditable] h6 {
+      margin: inherit;
+    }
     .hidden {
       display: none;
       opacity: 0;
@@ -73,6 +81,12 @@
     }
     .control.hidden + .expand-button::before {
       content: '\22ef';
+    }
+    .omit {
+      display: none;
+    }
+    .dash::before {
+      content: '\2014';
     }
   </style>
 </head>
@@ -130,10 +144,27 @@
       });
     }
 
+    function applyHeading(match, start, end) {
+      var level = match[1].length;
+      var tagName = 'h' + level;
+      var el = view.wrapText(view.el, start, end - match[4].length, tagName);
+      var span = view.wrapText(el, 0, level + match[2].length, 'span.control');
+      var widget = el.insertBefore(document.createElement('span'), span);
+      widget.classList.add('widget');
+      widget.appendChild(span);
+    }
+
+    function applyDash(match, start, end) {
+      var el = view.wrapText(view.el, start, end, 'span.dash');
+      view.wrapText(el, 0, match[0].length, 'span.omit');
+    }
+
     var patterns = [
       /(\*\*?)(?!\s).+?(\*?\*)/, applyBoldOrItalics,
       /(\_\_?)(?!\s).+?(\_?\_)/, applyBoldOrItalics,
-      /\[(.*?)\]\((.*?)\)/, applyLink
+      /\[(.*?)\]\((.*?)\)/, applyLink,
+      /^ *(#{1,6})( *)([^\n]+?)(\n+|$)/, applyHeading,
+      /--(?=[^-])/, applyDash,
     ];
 
     function adjustControlChars(disableTransitions) {
@@ -147,6 +178,7 @@
         if (!revealIncrementally && dist < threshold)
           dist = 0;
         var pct = Math.min(threshold, dist) / threshold;
+        if (pct > 0.99) pct = 1;  // Prevent tiny wiggles.
         var controls = w.querySelectorAll('.control');
         for (var i = 0; i < controls.length; ++i) {
           var c = controls[i];
